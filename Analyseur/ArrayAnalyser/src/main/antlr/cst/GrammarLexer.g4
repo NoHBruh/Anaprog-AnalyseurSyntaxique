@@ -6,14 +6,12 @@ grammar GrammarLexer;
 // Keywords
 INT: 'int';
 BOOL: 'bool';
-IF: 'if';
 ELSE: 'else';
-WHILE: 'while';
 PRINT: 'print';
 
 //Literals
 fragment DIGIT: [0-9];
-NUMBER: DIGIT+;
+NUM: DIGIT+;
 TRUE: 'true';
 FALSE: 'false';
 
@@ -41,11 +39,13 @@ LESS_EQUAL: '<=';
 EQUAL: '==';
 DIFFERENT: '!=';
 RETURN: 'return';
-ASSIGN: '=';
+assign: '=';
+AND: 'and';
+OR: 'or';
 
 //Identifiers
 fragment LETTER: [a-zA-Z];
-IDENTIFIER: LETTER (LETTER | DIGIT)*;
+identifier: LETTER (LETTER | DIGIT)*;
 
 // Comments -> ignored
 COMMENT: ('/*'(.*?)'*/'|'//'.*?'\r'?('\n'|EOF)) -> skip;
@@ -58,32 +58,50 @@ WS: [ \t]+ -> skip ;
 //------Parser Rules--------
 //
 
-PROGRAM: FUNCTION*;
+program: function*;
 
-FUNCTION: 'function' IDENTIFIER LPAR [PARAMLIST] RPAR LCBRACKET STMTLIST RCBRACKET;
+function: 'function' identifier LPAR paramlist? RPAR LCBRACKET stmtlist RCBRACKET;
 
-PARAMLIST: PARAM | PARAM COMMA PARAMLIST;
+paramlist: param | param COMMA paramlist;
 
-PARAM: IDENTIFIER;
+param: identifier;
 
-STMTLIST: STMT | STMT STMTLIST;
+stmtlist: stmt | stmt stmtlist;
 
-STMT: ASSIGN | IF | WHILE | SEQUENCE | RETURNSTMT SEMICOLON;
+stmt: assign | IF | WHILE | sequence | returnstmt SEMICOLON;
 
-ASSIGNMENT: IDENTIFIER ASSIGN EXPR | IDENTIFIER EQUAL FUNCCALL;
+assignment: identifier assign expr | identifier EQUAL funccall | identifier RBRACKET NUM LBRACKET assign  LCBRACKET (NUM (COMMA NUM)*)? RCBRACKET;
 
-IF: IF LBRACKET EXPR RBRACKET STMT ELSE STMT;
+funccall: identifier LBRACKET exprlist? RBRACKET;
 
-WHILE: WHILE LBRACKET EXPR RBRACKET STMT;
+if: 'if' LBRACKET expr RBRACKET stmt ELSE stmt;
 
-SEQUENCE: LCBRACKET STMTLIST RCBRACKET;
+while: 'while' LBRACKET expr RBRACKET stmt;
 
-RETURNSTMT: RETURN EXPR;
+sequence: LCBRACKET stmtlist RCBRACKET;
 
-EXPR: ARITHEXPR | BOOLEXPR;
+returnstmt: RETURN expr;
 
-ARITHEXPR: NOPRND | BINOPRND;
+expr: arithexpr | boolexpr;
 
-BOOLEXPR: BOPRND | RELOP;
+arithexpr: noprnd | binop;
 
-BINOP: NOPRND OP NOPRND;
+boolexpr: boprnd | relop;
+
+binop: noprnd op noprnd;
+
+relop: boprnd rop boprnd;
+
+noprnd: var | NUM;
+
+boprnd: var | TRUE | FALSE;
+
+op: ADD | SUBTRACT | MULTIPLY | DIVIDE;
+
+rop: LESS | GREATER | EQUAL | DIFFERENT | GREATER_EQUAL | LESS_EQUAL | AND | OR;
+
+var: identifier;
+
+exprlist: expr*;
+
+array: LBRACKET NUM (COMMA NUM)* RBRACKET; // CREATION DE array AVEC MIN 1 VALEUR
