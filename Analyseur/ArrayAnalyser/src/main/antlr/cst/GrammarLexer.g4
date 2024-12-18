@@ -1,19 +1,35 @@
 grammar GrammarLexer;
+//
+//------Lexer Rules-----------
+//
 
+// Keywords
+INT: 'int';
+BOOL: 'bool';
 IF: 'if';
 ELSE: 'else';
-fragment LETTER: [a-zA-Z];
+WHILE: 'while';
+PRINT: 'print';
+
+//Literals
 fragment DIGIT: [0-9];
+NUMBER: DIGIT+;
 TRUE: 'true';
 FALSE: 'false';
-LBRACKET: '(';
-RBRACKET: ')';
-LSBRACKET: '[';
-RSBRACKET: ']';
+
+
+//Separators
+LPAR: '(';
+RPAR: ')';
+LBRACKET: '[';
+RBRACKET: ']';
 LCBRACKET: '{';
 RCBRACKET: '}';
 COMMA: ',';
 DOT: '.';
+SEMICOLON : ';';
+
+//Operators
 ADD: '+';
 SUBTRACT: '-';
 MULTIPLY: '*';
@@ -24,19 +40,27 @@ LESS: '<';
 LESS_EQUAL: '<=';
 EQUAL: '==';
 DIFFERENT: '!=';
-WHILE: 'while';
 RETURN: 'return';
-INT: 'int';
-BOOL: 'bool';
-PRINT: 'print';
 ASSIGN: '=';
-NUMBER: DIGIT+;
+
+//Identifiers
+fragment LETTER: [a-zA-Z];
 IDENTIFIER: LETTER (LETTER | DIGIT)*;
+
+// Comments -> ignored
+COMMENT: ('/*'(.*?)'*/'|'//'.*?'\r'?('\n'|EOF)) -> skip;
+
+// Whitespaces -> ignored
 NEWLINE: '\r'?'\n'  -> skip ;
+WS: [ \t]+ -> skip ;
+
+//
+//------Parser Rules--------
+//
 
 PROGRAM: FUNCTION*;
 
-FUNCTION: 'function' IDENTIFIER LPAR [PARAMLIST] RPAR LCBRACKET STMTLIST RBBRACKET;
+FUNCTION: 'function' IDENTIFIER LPAR [PARAMLIST] RPAR LCBRACKET STMTLIST RCBRACKET;
 
 PARAMLIST: PARAM | PARAM COMMA PARAMLIST;
 
@@ -46,7 +70,7 @@ STMTLIST: STMT | STMT STMTLIST;
 
 STMT: ASSIGN | IF | WHILE | SEQUENCE | RETURNSTMT SEMICOLON;
 
-ASSIGN: IDENTIFIER EQUAL EXPR | IDENTIFIER EQUAL FUNCCALL;
+ASSIGNMENT: IDENTIFIER ASSIGN EXPR | IDENTIFIER EQUAL FUNCCALL;
 
 IF: IF LBRACKET EXPR RBRACKET STMT ELSE STMT;
 
