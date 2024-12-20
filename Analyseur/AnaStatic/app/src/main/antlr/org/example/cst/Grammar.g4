@@ -45,7 +45,7 @@ OR: 'or';
 
 //Identifiers
 fragment LETTER: [a-zA-Z];
-identifier: LETTER (LETTER | DIGIT)*;
+ID: LETTER (LETTER | DIGIT)*;
 
 // Comments -> ignored
 COMMENT: ('/*'(.*?)'*/'|'//'.*?'\r'?('\n'|EOF)) -> skip;
@@ -60,23 +60,25 @@ WS: [ \t]+ -> skip ;
 
 program: function*;
 
-function: 'function' identifier LPAR paramlist? RPAR LCBRACKET stmtlist RCBRACKET;
+function: 'function' ID LPAR paramlist? RPAR LCBRACKET stmtlist RCBRACKET;
 
 paramlist: param | param COMMA paramlist;
 
-param: identifier;
+param: ID;
 
 stmtlist: stmt | stmt stmtlist;
 
 stmt: assignment | if | while | sequence | returnstmt SEMICOLON;
 
-assignment: identifier ASSIGN expr | identifier EQUAL funccall | identifier RBRACKET NUM LBRACKET ASSIGN  LCBRACKET (NUM (COMMA NUM)*)? RCBRACKET;
+assignment: ID ASSIGN expr SEMICOLON
+    | ID EQUAL funccall SEMICOLON
+    | ID LBRACKET NUM RBRACKET ASSIGN  LCBRACKET (NUM (COMMA NUM)*)? RCBRACKET SEMICOLON;
 
-funccall: identifier LBRACKET exprlist? RBRACKET;
+funccall: ID LBRACKET exprlist RBRACKET;
 
-if: 'if' LBRACKET expr RBRACKET stmt ELSE stmt;
+if: 'if' LPAR expr RPAR stmt ELSE stmt;
 
-while: 'while' LBRACKET expr RBRACKET stmt;
+while: 'while' LPAR expr RPAR stmt;
 
 sequence: LCBRACKET stmtlist RCBRACKET;
 
@@ -100,8 +102,8 @@ op: ADD | SUBTRACT | MULTIPLY | DIVIDE;
 
 rop: LESS | GREATER | EQUAL | DIFFERENT | GREATER_EQUAL | LESS_EQUAL | AND | OR;
 
-var: identifier;
+var: ID;
 
 exprlist: expr*;
 
-array: LBRACKET NUM (COMMA NUM)* RBRACKET; // CREATION DE array AVEC MIN 1 VALEUR
+array: LBRACKET (noprnd|boprnd) (COMMA (noprnd|boprnd))* RBRACKET; // CREATION DE array AVEC MIN 1 VALEUR
