@@ -66,18 +66,15 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
       Failure(UnsupportedRuleException(s"No ID : ${ctx.getText}", ctx, null))
     }
   }
-
-  override def visitStmtSolo(ctx: ExampleGrammarParser.StmtSoloContext): Try[ExampleStmtSolo] = {
-    for{
-      stmts <- visitStmt(ctx.stmt)
-    } yield ExampleStmtSolo(stmts.stmt)
-  }
-
-  override def visitStmtAndList(ctx: ExampleGrammarParser.StmtAndListContext): Try[ExampleStmtAndList] = {
-    for {
-      stmts <- visitStmt(ctx.stmt)
-      stmtlist <- visitStmtList(ctx.stmtlist)
-    } yield ExampleStmtAndList(stmts.stmt ++ stmtlist.toString)
+  override def visitStmtList(ctx: ExampleGrammarParser.StmtListContext): Try[ExampleStmtList] = {
+    if(ctx.stmtlist != null) {
+      visitStmt(ctx.stmt)
+      visitStmtList(ctx.stmtlist)
+    } else if (ctx.stmtlist == null){
+      visitStmt(ctx.stmt)
+    } else{
+      Failure(UnsupportedRuleException(s"Unsupported statement : ${ctx.getText}", ctx, null))
+    }
   }
 
   override def visitStmt(ctx: ExampleGrammarParser.StmtContext): Try[ExampleStmt] = {
@@ -182,7 +179,96 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
         case _ => Failure(CannotBuildAstException(s"While condition ${ctx.expression.getText} is not a boolean", ctx, null))
       }
       statements <- visitStmt(ctx.stmt)
-    } yield ExampleWhileStatement(ctx.getStart.getLine, condition, statements)
+    } yield ExampleWhileStmt(ctx.getStart.getLine, condition, statements)
+  }
+
+  override def visitSequenceStmt(ctx: ExampleGrammarParser.SequenceStmtContext): Try[ExampleSequenceStmt] = {
+    for {
+      stmts <- visitStmtList(ctx.stmtlist)
+    } yield ExampleSequenceStmt(ctx.getStart.getLine, stmts)
+  }
+
+  override def visitReturnStmt(ctx: ExampleGrammarParser.ReturnStmtContext): Try[ExampleReturnStmt] = {
+    for {
+      exp <- visitExpr(ctx.expr)
+    } yield ExampleReturnStmt(ctx.getStart.getLine, exp)
+  }
+
+  override def visitExpr(ctx: ExampleGrammarParser.ExprContext): Try[ExampleExpr] = {
+    if(ctx.arithexpr != null){
+      visitArithExpr(ctx.arithexpr)
+    } else if(ctx.boolexpr != null) {
+      visitBoolExpr(ctx.boolexpr)
+    } else {
+      Failure(UnsupportedRuleException(s"Unsupported expr : ${ctx.getText}", ctx, null))
+    }
+  }
+
+  override def visitArithExpr(ctx: ExampleGrammarParser.ArithExprContext): Try[ExampleArithExpr] = {
+    if(ctx.noprnd != null) {
+      visitNOprnd(ctx.noprnd)
+    } else if(ctx.binop != null){
+      visitBinOp(ctx.binop)
+    } else {
+      Failure(UnsupportedRuleException(s"Unsupported ArithExpr : ${ctx.getText}", ctx, null))
+    }
+  }
+
+  override def visitBoolExpr(ctx: ExampleGrammarParser.BoolExprContext): Try[ExampleBoolExpr] = {
+    if (ctx.boprnd != null) {
+      visitNOprnd(ctx.boprnd)
+    } else if (ctx.relop != null) {
+      visitBinOp(ctx.relop)
+    } else {
+      Failure(UnsupportedRuleException(s"Unsupported BoolExpr : ${ctx.getText}", ctx, null))
+    }
+  }
+
+  override def visitBinOp(ctx: ExampleGrammarParser.BinOpContext): Try[ExampleBinOp] = {
+    (visitNOprnd(ctx.noprnd(0)), visitNOprnd(ctx.noprnd(1))) match
+      case( Success(left: ExampleIntegerValue), Success(right: ExampleIntegerValue)) =>
+        if(ctx.MULTIPLY != null) {
+          Success(ExampleBinOpComparisonOperation(ExampleIntegerComparisonOperation.Mult, left,right))
+        } else if(ctx.DIVIDE != null) {
+          Success(ExampleBinOpComparisonOperation(ExampleIntegerComparisonOperation.Div, left,right))
+        } else if (ctx.ADD != null) {
+          Success(ExampleBinOpComparisonOperation(ExampleIntegerComparisonOperation.Add, left, right))
+        } else if (ctx.SUBSTRACT != null) {
+          Success(ExampleBinOpComparisonOperation(ExampleIntegerComparisonOperation.Sub, left, right))
+        } else {
+          Failure(CannotBuildAstException(s"Invalid operator in integer comparison : ${ctx.getText}", ctx))
+        }
+      case (_, Failure(exception))
+      => Failure(exception)
+      case (Failure(exception), _)
+      => Failure(exception)
+      case (_, _) => Failure(CannotBuildAstException(s"Invalid comparison : ${ctx.getText}", ctx))
+  }
+
+  override def visitRelOp(ctx: ExampleGrammarParser.RelOpContext): Try[ExampleRelOp] = {
+    (visitNOprnd(ctx.noprnd(0)), visitNOprnd(ctx.noprnd(1))) match
+      //TODO
+      case (Success(left: ExampleIntegerValue), Success(right: ExampleIntegerValue)) =>
+        if (ctx.MULTIPLY != null) {
+          Success(ExampleRelOpComparisonOperation(ExampleBooleanComparisonOperation.Mult, left, right))
+        } else if (ctx.DIVIDE != null) {
+          Success(ExampleRelOpComparisonOperation(ExampleBooleanComparisonOperation.Div, left, right))
+        } else if (ctx.ADD != null) {
+          Success(ExampleRelOpComparisonOperation(ExampleBooleanComparisonOperation.Add, left, right))
+        } else if (ctx.SUBSTRACT != null) {
+          Success(ExampleRelOpComparisonOperation(ExampleBooleanComparisonOperation.Sub, left, right))
+        } else {
+          Failure(CannotBuildAstException(s"Invalid operator in integer comparison : ${ctx.getText}", ctx))
+        }
+      case (_, Failure(exception))
+      => Failure(exception)
+      case (Failure(exception), _)
+      => Failure(exception)
+      case (_, _) => Failure(CannotBuildAstException(s"Invalid comparison : ${ctx.getText}", ctx))
+  }
+
+  override def visitNOprnd(ctx: ExampleGrammarParser.NOprndContext): Try[ExampleNOprnd] = {
+
   }
 
 }

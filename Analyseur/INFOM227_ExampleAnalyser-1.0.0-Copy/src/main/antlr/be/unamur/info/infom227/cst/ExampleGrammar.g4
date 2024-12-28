@@ -68,8 +68,8 @@ paramlist: param #paramlistparam
 
 param: ID;
 
-stmtlist: stmt #stmtsolo
-    | stmt stmtlist #stmtandlist;
+stmtlist: stmt
+    | stmt stmtlist;
 
 stmt: assignment | ifstmt | whilestmt | sequencestmt | returnstmt SEMICOLON;
 
@@ -93,17 +93,13 @@ arithexpr: noprnd | binop;
 
 boolexpr: boprnd | relop;
 
-binop: noprnd op noprnd;
+binop: noprnd (MULTIPLY | DIVIDE | ADD | SUBTRACT) noprnd;
 
-relop: boprnd rop boprnd;
+relop: boprnd (LESS | GREATER | EQUAL | DIFFERENT | GREATER_EQUAL | LESS_EQUAL | AND | OR) boprnd;
 
 noprnd: var | NUM;
 
 boprnd: var | TRUE | FALSE;
-
-op:  MULTIPLY | DIVIDE | ADD | SUBTRACT;
-
-rop: LESS | GREATER | EQUAL | DIFFERENT | GREATER_EQUAL | LESS_EQUAL | AND | OR;
 
 var: ID;
 
