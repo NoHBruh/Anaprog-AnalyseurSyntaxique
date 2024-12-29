@@ -97,11 +97,11 @@ binop: noprnd (MULTIPLY | DIVIDE | ADD | SUBTRACT) noprnd;
 
 relop: boprnd (LESS | GREATER | EQUAL | DIFFERENT | GREATER_EQUAL | LESS_EQUAL | AND | OR) boprnd;
 
-noprnd: var | NUM;
+noprnd: variable | NUM;
 
-boprnd: var | TRUE | FALSE;
+boprnd: variable | TRUE | FALSE;
 
-var: ID;
+variable: ID;
 
 exprlist: expr*;
 
