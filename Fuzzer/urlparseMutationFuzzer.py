@@ -12,4 +12,5 @@ for i in range(1000) :
     print("fuzz :" + fuzz +"\n") 
     print("result :" + urlparse(fuzz).geturl())
     print("----------------\n" )
+    #Url sont en minuscule
     assert urlparse(fuzz.lower()).geturl() == fuzz.lower()
