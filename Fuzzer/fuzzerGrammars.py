@@ -20,8 +20,8 @@ URL_GRAMMAR: Grammar = {
         ["<digit>", "<digit><digit>"],
     "<digit>":
         ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-    "<userinfo>":  # 1 example
-        ["user:password"],
+    "<userinfo>":  # quelques-uns
+        ["user:password", "user:name"],
     "<path>":  # quelques-uns
         ["", "/", "/<id>"],
     "<id>":  # quelques-uns
